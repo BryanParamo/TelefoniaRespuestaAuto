@@ -9,13 +9,6 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import android.app.role.RoleManager
-import android.content.Intent
-import android.os.Build
-import android.telecom.TelecomManager
-import androidx.annotation.RequiresApi
-
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,25 +25,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Dentro de tu MainActivity, por ejemplo en onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val roleManager = getSystemService(RoleManager::class.java)
-            if (!roleManager.isRoleAvailable(RoleManager.ROLE_DIALER)) {
-                // El rol de dialer no está disponible (poco probable en Android Q+)
-            } else if (roleManager.isRoleHeld(RoleManager.ROLE_DIALER)) {
-                // Ya somos la aplicación de teléfono predeterminada
-            } else {
-                // Solicitar que el usuario establezca la app como teléfono predeterminado
-                val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
-                startActivityForResult(intent, 1001)
-            }
-        } else {
-            // Para versiones anteriores a Android Q, usa el intent tradicional
-            val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
-            intent.putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
-            startActivityForResult(intent, 1001)
-        }
 
         // Creación del layout de forma programática
         val layout = LinearLayout(this).apply {
@@ -83,6 +57,24 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+            setOnClickListener {
+                val phone = etPhone.text.toString().trim()
+                val message = etMessage.text.toString().trim()
+
+                // Validación simple: solo dígitos y longitud entre 7 y 15 (puedes ajustar según tus necesidades)
+                val phoneRegex = Regex("^\\d{7,15}\$")
+                if (phone.isNotEmpty() && message.isNotEmpty() && phoneRegex.matches(phone)) {
+                    // Guardar datos en SharedPreferences
+                    sharedPref.edit().apply {
+                        putString(KEY_PHONE, phone)
+                        putString(KEY_MESSAGE, message)
+                        apply()
+                    }
+                    Toast.makeText(this@MainActivity, "Datos guardados", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MainActivity, "Complete todos los campos con datos válidos", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
         // Agregar componentes al layout
@@ -93,27 +85,11 @@ class MainActivity : AppCompatActivity() {
         // Establecer el layout como la vista principal de la actividad
         setContentView(layout)
 
+        // Inicializar SharedPreferences
         sharedPref = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         // Cargar datos previamente guardados, si existen
         etPhone.setText(sharedPref.getString(KEY_PHONE, ""))
         etMessage.setText(sharedPref.getString(KEY_MESSAGE, ""))
-
-        btnSave.setOnClickListener {
-            val phone = etPhone.text.toString().trim()
-            val message = etMessage.text.toString().trim()
-
-            if (phone.isNotEmpty() && message.isNotEmpty()) {
-                // Guardar datos en SharedPreferences
-                sharedPref.edit().apply {
-                    putString(KEY_PHONE, phone)
-                    putString(KEY_MESSAGE, message)
-                    apply()
-                }
-                Toast.makeText(this, "Datos guardados", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Complete todos los campos", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 }

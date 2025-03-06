@@ -26,20 +26,35 @@ class CallReceiver : BroadcastReceiver() {
                 val autoMessage = sharedPref.getString(MainActivity.KEY_MESSAGE, "")
 
                 // Si se ha configurado un número, enviamos el SMS al número almacenado
-                if (!storedPhone.isNullOrEmpty()) {
-                    // Si el número entrante coincide con el número configurado, o es null (por restricciones de Android),
-                    // procedemos a enviar el mensaje.
-                    if (incomingNumber == storedPhone || incomingNumber == null) {
-                        Log.d("CallReceiver", "Enviando SMS automático al número configurado...")
-                        try {
-                            val smsManager = SmsManager.getDefault()
-                            smsManager.sendTextMessage(storedPhone, null, autoMessage, null, null)
-                            Log.d("CallReceiver", "SMS enviado correctamente")
-                        } catch (e: Exception) {
-                            Log.e("CallReceiver", "Error al enviar el SMS: ${e.message}")
-                        }
+//                if (!storedPhone.isNullOrEmpty()) {
+//                    // Si el número entrante coincide con el número configurado, o es null (por restricciones de Android),
+//                    // procedemos a enviar el mensaje.
+//                    if (incomingNumber == storedPhone || incomingNumber == null) {
+//                        Log.d("CallReceiver", "Enviando SMS automático al número configurado...")
+//                        try {
+//                            val smsManager = SmsManager.getDefault()
+//                            smsManager.sendTextMessage(storedPhone, null, autoMessage, null, null)
+//                            Log.d("CallReceiver", "SMS enviado correctamente")
+//                        } catch (e: Exception) {
+//                            Log.e("CallReceiver", "Error al enviar el SMS: ${e.message}")
+//                        }
+//                    }
+//                }
+
+
+                if (!storedPhone.isNullOrEmpty() && incomingNumber != null && storedPhone == incomingNumber) {
+                    Log.d("CallReceiver", "Número coincide. Enviando SMS automático...")
+                    try {
+                        val smsManager = SmsManager.getDefault()
+                        smsManager.sendTextMessage(storedPhone, null, autoMessage, null, null)
+                        Log.d("CallReceiver", "SMS enviado correctamente")
+                    } catch (e: Exception) {
+                        Log.e("CallReceiver", "Error al enviar el SMS: ${e.message}")
                     }
                 }
+
+
+
             }
         }
     }
